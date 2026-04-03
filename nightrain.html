@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ナイトレイン逆引きツール</title>
+<style>
+body { font-family: sans-serif; padding: 20px; background: #111; color: #eee; }
+select { padding: 10px; margin: 10px 0; font-size: 16px; }
+.box { margin-top: 20px; padding: 15px; background: #222; border-radius: 8px; }
+</style>
+</head>
+<body>
+
+<h1>ナイトレイン逆引きツール</h1>
+
+<select id="bossSelect"></select>
+<select id="modeSelect">
+<option value="通常">通常</option>
+<option value="常世">常世</option>
+</select>
+
+<div class="box">
+<h2>1日目</h2>
+<div id="day1"></div>
+</div>
+
+<div class="box">
+<h2>2日目</h2>
+<div id="day2"></div>
+</div>
+
+<script>
+const data = {
+"グラディウス": {
+"通常": {"day1":["鈴玉狩り"],"day2":["忌み鬼","ツリーガード＆王都の騎兵"]},
+"常世": {"day1":["亜人の女王＆亜人の剣聖","鈴玉狩り"],"day2":["忌み鬼","ツリーガード＆王都の騎兵"]}
+},
+
+"エデレ": {
+"通常": {"day1":["英雄のガーゴイル","ミミズ顔","公のフレイディア","貪食ドラゴン"],"day2":["古竜","砕地の宿将","坩堝の騎士＆黄金カバ"]},
+"常世": {"day1":["英雄のガーゴイル","ミミズ顔","夜の騎兵たち"],"day2":["古竜","砕地の宿将","坩堝の騎士＆黄金カバ"]}
+},
+
+"グノスター": {
+"通常": {"day1":["百足のデーモン","戦場の宿将","熔鉄デーモン","夜の騎兵たち"],"day2":["大土竜","ノクスの竜人兵","竜のツリーガード＆王都の騎兵"]},
+"常世": {"day1":["百足のデーモン","戦場の宿将","熔鉄デーモン","夜の騎兵たち","ティビアの呼び舟"],"day2":["大土竜","ノクスの竜人兵","竜のツリーガード＆王都の騎兵","夜の騎兵たち"]}
+},
+
+"フルゴール": {
+"通常": {"day1":["王族の幽鬼","貪食ドラゴン","百足のデーモン","夜の騎兵たち"],"day2":["ノクスの竜人兵","砕地の宿将","無名の王"]},
+"常世": {"day1":["王族の幽鬼","ミミズ顔","百足のデーモン","夜の騎兵たち"],"day2":["ノクスの竜人兵","砕地の宿将","無名の王"]}
+},
+
+"カリゴ": {
+"通常": {"day1":["燻れた樹霊","接ぎ木の君主","熔鉄デーモン"],"day2":["冷たい谷の踊り子","竜のツリーガード＆王都の騎兵"]},
+"常世": {"day1":["燻れた樹霊","接ぎ木の君主","熔鉄デーモン","公のフレイディア","ティビアの呼び舟"],"day2":["冷たい谷の踊り子","竜のツリーガード＆王都の騎兵","神肌の貴種＆神肌の使徒"]}
+},
+
+"リブラ": {
+"通常": {"day1":["王族の幽鬼","公のフレイディア","ティビアの呼び舟","百足のデーモン"],"day2":["死儀礼の鳥","坩堝の騎士＆黄金カバ"]},
+"常世": {"day1":["王族の幽鬼","公のフレイディア","ティビアの呼び舟","百足のデーモン","戦場の宿将"],"day2":["死儀礼の鳥","坩堝の騎士＆黄金カバ","神肌の貴種＆神肌の使徒"]}
+},
+
+"マリス": {
+"day1":["英雄のガーゴイル","貪食ドラゴン","接ぎ木の君主","ミミズ顔","熔鉄デーモン"],
+"day2":["神肌の貴種＆神肌の使徒","ツリーガード＆王都の騎兵","降る星の成獣"]
+}
+};
+
+const bossSelect = document.getElementById("bossSelect");
+const modeSelect = document.getElementById("modeSelect");
+
+Object.keys(data).forEach(boss=>{
+const option=document.createElement("option");
+option.value=boss;
+option.textContent=boss;
+bossSelect.appendChild(option);
+});
+
+function update(){
+const boss=bossSelect.value;
+const mode=modeSelect.value;
+let info=data[boss];
+
+if(info["通常"]){
+info=info[mode]||info["通常"];
+}
+
+document.getElementById("day1").innerHTML=info.day1.join("<br>");
+document.getElementById("day2").innerHTML=info.day2.join("<br>");
+}
+
+bossSelect.addEventListener("change",update);
+modeSelect.addEventListener("change",update);
+
+update();
+</script>
+
+</body>
+</html>
