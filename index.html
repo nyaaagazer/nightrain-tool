@@ -2,98 +2,178 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>ナイトレイン逆引きツール</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ナイトレイン完全版</title>
+
 <style>
-body { font-family: sans-serif; padding: 20px; background: #111; color: #eee; }
-select { padding: 10px; margin: 10px 0; font-size: 16px; }
-.box { margin-top: 20px; padding: 15px; background: #222; border-radius: 8px; }
+body {
+  font-family: sans-serif;
+  background: #0f1115;
+  color: #fff;
+  padding: 12px;
+}
+
+h2 { margin-top: 16px; }
+
+select {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: none;
+}
+
+.card {
+  background: #1a1f27;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.name { font-weight: bold; }
+
+.weak { color: #4fc3f7; }
+.resist { color: #ef5350; }
 </style>
 </head>
+
 <body>
 
-<h1>ナイトレイン逆引きツール</h1>
+<h2>夜の王</h2>
+<select id="boss"></select>
 
-<select id="bossSelect"></select>
-<select id="modeSelect">
-<option value="通常">通常</option>
-<option value="常世">常世</option>
-</select>
-
-<div class="box">
 <h2>1日目</h2>
 <div id="day1"></div>
-</div>
 
-<div class="box">
 <h2>2日目</h2>
 <div id="day2"></div>
-</div>
 
 <script>
-const data = {
-"グラディウス": {
-"通常": {"day1":["鈴玉狩り"],"day2":["忌み鬼","ツリーガード＆王都の騎兵"]},
-"常世": {"day1":["亜人の女王＆亜人の剣聖","鈴玉狩り"],"day2":["忌み鬼","ツリーガード＆王都の騎兵"]}
-},
 
-"エデレ": {
-"通常": {"day1":["英雄のガーゴイル","ミミズ顔","公のフレイディア","貪食ドラゴン"],"day2":["古竜","砕地の宿将","坩堝の騎士＆黄金カバ"]},
-"常世": {"day1":["英雄のガーゴイル","ミミズ顔","夜の騎兵たち"],"day2":["古竜","砕地の宿将","坩堝の騎士＆黄金カバ"]}
-},
+// ===== 耐性データ（統合） =====
+const resist = {
 
-"グノスター": {
-"通常": {"day1":["百足のデーモン","戦場の宿将","熔鉄デーモン","夜の騎兵たち"],"day2":["大土竜","ノクスの竜人兵","竜のツリーガード＆王都の騎兵"]},
-"常世": {"day1":["百足のデーモン","戦場の宿将","熔鉄デーモン","夜の騎兵たち","ティビアの呼び舟"],"day2":["大土竜","ノクスの竜人兵","竜のツリーガード＆王都の騎兵","夜の騎兵たち"]}
-},
+"亜人の女王＆亜人の剣聖":{weak:["斬","炎"],resist:["睡眠"]},
+"英雄のガーゴイル":{weak:[],resist:["全"]},
+"王族の幽鬼":{weak:["斬"],resist:["聖","睡眠"]},
+"公のフレイディア":{weak:["打"],resist:["炎以外","毒","睡眠"]},
+"鈴玉狩り":{weak:["毒","腐敗","睡眠"],resist:["刺","雷"]},
+"戦場の宿将":{weak:["状態異常"],resist:["属性","斬"]},
+"燻れた樹霊":{weak:["炎","冷気"],resist:["聖"]},
+"接ぎ木の君主":{weak:["状態異常"],resist:["聖"]},
+"ティビアの呼び舟":{weak:["斬","聖","腐敗"],resist:["腐敗以外"]},
+"貪食ドラゴン":{weak:["出血","冷気"],resist:["毒","腐敗"]},
+"ミミズ顔":{weak:[],resist:["聖"]},
+"百足のデーモン":{weak:[],resist:["炎"]},
+"熔鉄デーモン":{weak:["毒","腐敗"],resist:["出血","睡眠","炎"]},
+"夜の騎兵たち":{weak:["毒","腐敗","睡眠"],resist:["全属性"]},
 
-"フルゴール": {
-"通常": {"day1":["王族の幽鬼","貪食ドラゴン","百足のデーモン","夜の騎兵たち"],"day2":["ノクスの竜人兵","砕地の宿将","無名の王"]},
-"常世": {"day1":["王族の幽鬼","ミミズ顔","百足のデーモン","夜の騎兵たち"],"day2":["ノクスの竜人兵","砕地の宿将","無名の王"]}
-},
+// DLC
+"ハルモニア":{weak:["打"],resist:["斬","炎","雷","聖"]},
+"呪剣士":{weak:["斬"],resist:[]},
+"神獣の戦士":{weak:[],resist:["斬","打","刺","魔","炎","雷"]},
+"傷ついたデーモン":{weak:["斬"],resist:["魔","炎","雷","聖"]},
+"うろ底のデーモン":{weak:["斬"],resist:["魔","炎","雷","聖"]},
+"デーモンの王子":{weak:["斬"],resist:["魔","炎","雷","聖"]},
+"血の君主（もーぐ様）":{weak:[],resist:["斬","打","刺","魔","炎","雷","聖"]},
+"瓦礫の王":{weak:["斬","刺","炎","聖"],resist:["雷"]},
+"大赤熊":{weak:["斬","炎"],resist:[]},
+"死の騎士":{weak:[],resist:["斬","打","刺","魔","炎","雷"]},
+"神獣獅子舞":{weak:[],resist:["斬","打","魔","雷","聖"]},
+"騎士アルトリウス":{weak:["打","雷","聖"],resist:["斬","魔","炎"]}
 
-"カリゴ": {
-"通常": {"day1":["燻れた樹霊","接ぎ木の君主","熔鉄デーモン"],"day2":["冷たい谷の踊り子","竜のツリーガード＆王都の騎兵"]},
-"常世": {"day1":["燻れた樹霊","接ぎ木の君主","熔鉄デーモン","公のフレイディア","ティビアの呼び舟"],"day2":["冷たい谷の踊り子","竜のツリーガード＆王都の騎兵","神肌の貴種＆神肌の使徒"]}
-},
-
-"リブラ": {
-"通常": {"day1":["王族の幽鬼","公のフレイディア","ティビアの呼び舟","百足のデーモン"],"day2":["死儀礼の鳥","坩堝の騎士＆黄金カバ"]},
-"常世": {"day1":["王族の幽鬼","公のフレイディア","ティビアの呼び舟","百足のデーモン","戦場の宿将"],"day2":["死儀礼の鳥","坩堝の騎士＆黄金カバ","神肌の貴種＆神肌の使徒"]}
-},
-
-"マリス": {
-"day1":["英雄のガーゴイル","貪食ドラゴン","接ぎ木の君主","ミミズ顔","熔鉄デーモン"],
-"day2":["神肌の貴種＆神肌の使徒","ツリーガード＆王都の騎兵","降る星の成獣"]
-}
 };
 
-const bossSelect = document.getElementById("bossSelect");
-const modeSelect = document.getElementById("modeSelect");
+// ===== ルートデータ（統合） =====
+const routes = {
 
-Object.keys(data).forEach(boss=>{
-const option=document.createElement("option");
-option.value=boss;
-option.textContent=boss;
-bossSelect.appendChild(option);
+"グラディウス":{
+day1:["亜人の女王＆亜人の剣聖","鈴玉狩り"],
+day2:["忌み鬼","ツリーガード＆王都の騎兵"]
+},
+
+"エデレ":{
+day1:["英雄のガーゴイル","ミミズ顔","公のフレイディア","貪食ドラゴン"],
+day2:["古竜","砕地の宿将","坩堝の騎士＆黄金カバ"]
+},
+
+"グノスター":{
+day1:["百足のデーモン","戦場の宿将","熔鉄デーモン","夜の騎兵たち"],
+day2:["大土竜","ノクスの竜人兵","竜のツリーガード＆王都の騎兵"]
+},
+
+"フルゴール":{
+day1:["王族の幽鬼","貪食ドラゴン","百足のデーモン","夜の騎兵たち"],
+day2:["ノクスの竜人兵","戦場の宿将","無名の王"]
+},
+
+"カリゴ":{
+day1:["燻れた樹霊","接ぎ木の君主","百足のデーモン"],
+day2:["冷たい谷の踊り子","竜のツリーガード＆王都の騎兵"]
+},
+
+"リブラ":{
+day1:["王族の幽鬼","公のフレイディア","ティビアの呼び舟","百足のデーモン"],
+day2:["死儀礼の鳥","坩堝の騎士＆黄金カバ"]
+},
+
+"マリス":{
+day1:["英雄のガーゴイル","貪食ドラゴン","接ぎ木の君主","ミミズ顔","百足のデーモン"],
+day2:["神肌の貴種＆神肌の使徒","ツリーガード＆王都の騎兵","降る星の成獣"]
+},
+
+// DLC
+"ハルモニア":{
+day1:["傷ついたデーモン＆うろ底のデーモン","呪剣士＆神獣の戦士"],
+day2:["デーモンの王子","血の君主（もーぐ様）"]
+},
+
+"瓦礫の王":{
+day1:["大赤熊","死の騎士"],
+day2:["神獣獅子舞","騎士アルトリウス"]
+}
+
+};
+
+// ===== 表示処理 =====
+function getResist(name){
+let key = Object.keys(resist).find(k => name.includes(k));
+return resist[key] || {weak:[],resist:[]};
+}
+
+function render(list,id){
+let el = document.getElementById(id);
+el.innerHTML = "";
+
+list.forEach(b=>{
+let r = getResist(b);
+
+el.innerHTML += `
+<div class="card">
+<div class="name">${b}</div>
+<div class="weak">弱点：${r.weak.join(" / ") || "なし"}</div>
+<div class="resist">耐性：${r.resist.join(" / ") || "なし"}</div>
+</div>`;
+});
+}
+
+// ===== 初期化 =====
+const select = document.getElementById("boss");
+
+Object.keys(routes).forEach(k=>{
+select.innerHTML += `<option>${k}</option>`;
 });
 
 function update(){
-const boss=bossSelect.value;
-const mode=modeSelect.value;
-let info=data[boss];
-
-if(info["通常"]){
-info=info[mode]||info["通常"];
+let b = select.value;
+render(routes[b].day1,"day1");
+render(routes[b].day2,"day2");
 }
 
-document.getElementById("day1").innerHTML=info.day1.join("<br>");
-document.getElementById("day2").innerHTML=info.day2.join("<br>");
-}
-
-bossSelect.addEventListener("change",update);
-modeSelect.addEventListener("change",update);
-
+select.onchange = update;
 update();
+
 </script>
 
 </body>
