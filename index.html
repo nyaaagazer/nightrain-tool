@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>ナイトレイン逆引き 特定色変え版</title>
+    <title>ナイトレイン逆引き 推測機能付き</title>
     <style>
         :root {
             --bg-color: #111;
@@ -26,11 +26,9 @@
         h3 { border-left: 4px solid #555; padding-left: 10px; margin-top: 20px; font-size: 1.1em; }
         .card { background: var(--card-bg); padding: 12px; margin-bottom: 8px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); border-left: 4px solid #444; }
         .name { font-weight: bold; font-size: 1.1em; margin-bottom: 6px; }
-        
-        /* 特定ボス用の紫色設定 */
         .highlight { border-left-color: var(--special-color) !important; }
         .highlight .name { color: var(--special-color); }
-        
+        .route-label { font-size: 0.75em; background: #444; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 8px; color: #ccc; }
         .weak { color: var(--weak-color); font-size: 0.9em; margin-bottom: 2px; }
         .resist { color: var(--resist-color); font-size: 0.9em; }
         .label { font-weight: bold; margin-right: 5px; opacity: 0.8; }
@@ -44,16 +42,17 @@
         <option value="通常">通常モード</option>
         <option value="常世">常世モード</option>
     </select>
+    <select id="reverseSelect" style="display:none; border-color: var(--special-color);"></select>
 </div>
 
-<h3>1日目</h3>
-<div id="d1"></div>
-
-<h3>2日目</h3>
-<div id="d2"></div>
+<div id="displayArea">
+    <h3>1日目</h3>
+    <div id="d1"></div>
+    <h3>2日目以降の候補</h3>
+    <div id="d2"></div>
+</div>
 
 <script>
-// --- 1. ボスマスタデータ ---
 const bossMasterData = {
     "鈴玉狩り": { weak: ["毒","腐敗","睡眠"], resist: ["刺","雷"] },
     "忌み鬼": { weak: ["なし"], resist: ["なし"] },
@@ -93,7 +92,6 @@ const bossMasterData = {
     "騎士アルトリウス": { weak: ["なし"], resist: ["なし"] }
 };
 
-// --- 2. スケジュールデータ ---
 const schedule = {
     "グラディウス": {
         "通常": { d1: ["鈴玉狩り"], d2: ["忌み鬼", "ツリーガード"] },
@@ -133,62 +131,91 @@ const schedule = {
     }
 };
 
-// --- 3. 判定ロジック ---
-function shouldHighlight(routeName, mode, day, bossName) {
+function shouldHighlight(routeName, mode, bossName) {
     if (mode !== "常世") return false;
-
-    if (routeName === "グラディウス" && bossName === "亜人の女王＆亜人の剣聖") return true;
-    if (routeName === "エデレ" && bossName === "夜の騎兵たち") return true;
-    if (routeName === "グノスター" && bossName === "ティビアの呼び舟") return true;
-    if (routeName === "フルゴール" && bossName === "ミミズ顔") return true;
-    if (routeName === "カリゴ") {
-        return ["公のフレイディア", "ティビアの呼び舟", "神肌の貴種＆神肌の使徒"].includes(bossName);
-    }
-    if (routeName === "リブラ") {
-        return ["戦場の宿将", "神肌の貴種＆神肌の使徒"].includes(bossName);
-    }
-    
-    return false;
+    const targets = {
+        "グラディウス": ["亜人の女王＆亜人の剣聖"],
+        "エデレ": ["夜の騎兵たち"],
+        "グノスター": ["ティビアの呼び舟"],
+        "フルゴール": ["ミミズ顔"],
+        "カリゴ": ["公のフレイディア", "ティビアの呼び舟", "神肌の貴種＆神肌の使徒"],
+        "リブラ": ["戦場の宿将", "神肌の貴種＆神肌の使徒"]
+    };
+    return targets[routeName]?.includes(bossName) || false;
 }
 
-// --- 4. 描画処理 ---
 const bSelect = document.getElementById("bossSelect");
 const mSelect = document.getElementById("modeSelect");
+const rSelect = document.getElementById("reverseSelect");
 
+// セレクトボックス初期化
 Object.keys(schedule).forEach(name => {
     const opt = document.createElement("option");
     opt.value = name;
     opt.textContent = name;
     bSelect.appendChild(opt);
 });
+const specialOpt = document.createElement("option");
+specialOpt.value = "REVERSE";
+specialOpt.textContent = "【逆引き】1日目のボスから探す";
+bSelect.appendChild(specialOpt);
 
-function draw(names, targetId, dayKey) {
-    const el = document.getElementById(targetId);
-    const routeName = bSelect.value;
+function updateReverseOptions() {
+    rSelect.innerHTML = '<option value="">▼ 1日目のボスを選択</option>';
     const mode = mSelect.value;
-    el.innerHTML = "";
-    
-    names.forEach(name => {
-        const data = bossMasterData[name] || { weak: ["不明"], resist: ["不明"] };
-        const highlightClass = shouldHighlight(routeName, mode, dayKey, name) ? "highlight" : "";
-        
-        el.innerHTML += `
-            <div class="card ${highlightClass}">
-                <div class="name">${name}</div>
-                <div class="weak"><span class="label">弱点:</span>${data.weak.join(", ") || "なし"}</div>
-                <div class="resist"><span class="label">耐性:</span>${data.resist.join(", ") || "なし"}</div>
-            </div>`;
+    const firstDayBosses = new Set();
+    Object.values(schedule).forEach(routes => {
+        routes[mode].d1.forEach(b => firstDayBosses.add(b));
+    });
+    Array.from(firstDayBosses).sort().forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b;
+        opt.textContent = b;
+        rSelect.appendChild(opt);
     });
 }
 
-function update() {
-    const route = schedule[bSelect.value][mSelect.value];
-    draw(route.d1, "d1", "d1");
-    draw(route.d2, "d2", "d2");
+function drawCard(name, container, routeName, mode) {
+    const data = bossMasterData[name] || { weak: ["不明"], resist: ["不明"] };
+    const highlight = shouldHighlight(routeName, mode, name) ? "highlight" : "";
+    container.innerHTML += `
+        <div class="card ${highlight}">
+            <div class="name">${name}${routeName ? `<span class="route-label">${routeName}</span>` : ''}</div>
+            <div class="weak"><span class="label">弱点:</span>${data.weak.join(", ") || "なし"}</div>
+            <div class="resist"><span class="label">耐性:</span>${data.resist.join(", ") || "なし"}</div>
+        </div>`;
 }
 
-bSelect.onchange = update;
-mSelect.onchange = update;
+function update() {
+    const mode = mSelect.value;
+    const d1 = document.getElementById("d1");
+    const d2 = document.getElementById("d2");
+    d1.innerHTML = ""; d2.innerHTML = "";
+
+    if (bSelect.value === "REVERSE") {
+        rSelect.style.display = "block";
+        const targetBoss = rSelect.value;
+        if (!targetBoss) return;
+
+        Object.keys(schedule).forEach(routeName => {
+            const routeData = schedule[routeName][mode];
+            if (routeData.d1.includes(targetBoss)) {
+                drawCard(targetBoss, d1, routeName, mode);
+                routeData.d2.forEach(b => drawCard(b, d2, routeName, mode));
+            }
+        });
+    } else {
+        rSelect.style.display = "none";
+        const routeData = schedule[bSelect.value][mode];
+        routeData.d1.forEach(b => drawCard(b, d1, null, mode));
+        routeData.d2.forEach(b => drawCard(b, d2, null, mode));
+    }
+}
+
+bSelect.onchange = () => { updateReverseOptions(); update(); };
+mSelect.onchange = () => { updateReverseOptions(); update(); };
+rSelect.onchange = update;
+updateReverseOptions();
 update();
 </script>
 
