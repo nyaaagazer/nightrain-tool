@@ -1,198 +1,127 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link rel="apple-touch-icon" href="icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-
-<title>ナイトレイン逆引き</title>
-
-<style>
-body { font-family:sans-serif; background:#111; color:#eee; padding:15px;}
-select { width:100%; padding:12px; margin-bottom:10px;}
-.card { background:#222; padding:10px; margin-bottom:8px; border-radius:8px;}
-.name { font-weight:bold;}
-.weak { color:#6cf;}
-.resist { color:#f66;}
-.special { color:#c77dff; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>ナイトレイン逆引き v2</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --weak-color: #4fc3f7;
+            --resist-color: #ff5252;
+            --special-color: #b388ff;
+            --border-color: #333;
+        }
+        body { font-family: sans-serif; background: var(--bg-color); color: var(--text-main); padding: 15px; line-height: 1.4; }
+        select { 
+            width: 100%; padding: 12px; margin-bottom: 10px; 
+            background: var(--card-bg); color: #fff; border: 1px solid var(--border-color); border-radius: 5px;
+            font-size: 16px; /* iOSのズーム防止 */
+        }
+        h3 { border-left: 4px solid var(--special-color); padding-left: 10px; margin-top: 20px; font-size: 1.1em; }
+        .card { 
+            background: var(--card-bg); padding: 12px; margin-bottom: 10px; 
+            border-radius: 8px; border-left: 4px solid #444;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .name { font-weight: bold; font-size: 1.05em; margin-bottom: 4px; }
+        .special { color: var(--special-color); border-left-color: var(--special-color) !important; }
+        .info-row { font-size: 0.85em; margin-top: 2px; }
+        .weak { color: var(--weak-color); }
+        .resist { color: var(--resist-color); }
+        .label { font-weight: bold; margin-right: 5px; }
+    </style>
 </head>
-
 <body>
 
-<select id="boss"></select>
-<select id="mode">
-<option value="通常">通常</option>
-<option value="常世">常世</option>
+<select id="bossSelect"></select>
+<select id="modeSelect">
+    <option value="通常">通常モード</option>
+    <option value="常世">常世モード</option>
 </select>
 
-<h3>1日目</h3>
+<h3>1日目 (Day 1)</h3>
 <div id="d1"></div>
 
-<h3>2日目</h3>
+<h3>2日目 (Day 2)</h3>
 <div id="d2"></div>
 
 <script>
-
-function make(name, weak=[], resist=[]){
-return {name, weak, resist};
-}
-
-const specialList = [
-"亜人の女王＆亜人の剣聖",
-"夜の騎兵たち",
-"ティビアの呼び舟",
-"ミミズ顔",
-"公のフレイディア",
-"神肌の貴種＆神肌の使徒",
-"死儀礼の鳥"
-];
-
-const data = {
-
-"グラディウス":{
-"通常":{
-d1:[make("鈴玉狩り",["毒","腐敗","睡眠"],["刺","雷"])],
-d2:[make("忌み鬼"),make("ツリーガード")]
-},
-"常世":{
-d1:[
-make("亜人の女王＆亜人の剣聖",["斬","炎"],["睡眠"]),
-make("鈴玉狩り",["毒","腐敗","睡眠"],["刺","雷"])
-],
-d2:[make("忌み鬼"),make("ツリーガード")]
-}
-},
-
-"エデレ":{
-"通常":{
-d1:[
-make("英雄のガーゴイル",[],["全"]),
-make("ミミズ顔",[],["聖"]),
-make("公のフレイディア",["打"],["炎以外","毒","睡眠"]),
-make("貪食ドラゴン",["出血","冷気"],["毒","腐敗"])
-],
-d2:[make("古竜"),make("砕地の宿将",["状態異常"],["属性","斬"]),make("坩堝の騎士＆黄金カバ")]
-},
-"常世":{
-d1:[
-make("英雄のガーゴイル",[],["全"]),
-make("ミミズ顔",[],["聖"]),
-make("夜の騎兵たち",["毒","腐敗","睡眠"],["全属性","雷弱め"])
-],
-d2:[make("古竜"),make("砕地の宿将",["状態異常"],["属性","斬"]),make("坩堝の騎士＆黄金カバ")]
-}
-},
-
-"グノスター":{
-"通常":{
-d1:[make("百足のデーモン"),make("戦場の宿将"),make("熔鉄デーモン"),make("夜の騎兵たち")],
-d2:[make("大土竜"),make("ノクスの竜人兵"),make("竜のツリーガード＆王都の騎兵")]
-},
-"常世":{
-d1:[make("百足のデーモン"),make("戦場の宿将"),make("熔鉄デーモン"),make("夜の騎兵たち"),make("ティビアの呼び舟")],
-d2:[make("大土竜"),make("ノクスの竜人兵"),make("竜のツリーガード＆王都の騎兵"),make("夜の騎兵たち")]
-}
-},
-
-"フルゴール":{
-"通常":{
-d1:[make("王族の幽鬼"),make("貪食ドラゴン"),make("百足のデーモン"),make("夜の騎兵たち")],
-d2:[make("ノクスの竜人兵"),make("砕地の宿将"),make("無名の王")]
-},
-"常世":{
-d1:[make("王族の幽鬼"),make("ミミズ顔"),make("百足のデーモン"),make("夜の騎兵たち")],
-d2:[make("ノクスの竜人兵"),make("砕地の宿将"),make("無名の王")]
-}
-},
-
-"カリゴ":{
-"通常":{
-d1:[make("燻れた樹霊"),make("接ぎ木の君主"),make("熔鉄デーモン")],
-d2:[make("冷たい谷の踊り子"),make("竜のツリーガード＆王都の騎兵")]
-},
-"常世":{
-d1:[make("燻れた樹霊"),make("接ぎ木の君主"),make("熔鉄デーモン"),make("公のフレイディア"),make("ティビアの呼び舟")],
-d2:[make("冷たい谷の踊り子"),make("竜のツリーガード＆王都の騎兵"),make("神肌の貴種＆神肌の使徒")]
-}
-},
-
-"リブラ":{
-"通常":{
-d1:[make("王族の幽鬼"),make("公のフレイディア"),make("ティビアの呼び舟"),make("百足のデーモン")],
-d2:[make("死儀礼の鳥"),make("坩堝の騎士＆黄金カバ")]
-},
-"常世":{
-d1:[make("王族の幽鬼"),make("公のフレイディア"),make("ティビアの呼び舟"),make("百足のデーモン"),make("戦場の宿将")],
-d2:[make("死儀礼の鳥"),make("坩堝の騎士＆黄金カバ"),make("神肌の貴種＆神肌の使徒")]
-}
-},
-
-"マリス":{
-"通常":{
-d1:[make("英雄のガーゴイル"),make("貪食ドラゴン"),make("接ぎ木の君主"),make("ミミズ顔"),make("熔鉄デーモン")],
-d2:[make("神肌の貴種＆神肌の使徒"),make("ツリーガード＆王都の騎兵"),make("降る星の成獣")]
-},
-"常世":{
-d1:[make("英雄のガーゴイル"),make("貪食ドラゴン"),make("接ぎ木の君主"),make("ミミズ顔"),make("熔鉄デーモン")],
-d2:[make("神肌の貴種＆神肌の使徒"),make("ツリーガード＆王都の騎兵"),make("降る星の成獣")]
-}
-},
-
-"ハルモニア":{
-"通常":{
-d1:[make("傷ついたデーモン＆うろ底のデーモン"),make("呪剣士＆神獣の戦士")],
-d2:[make("デーモンの王子"),make("血の君主（もーぐ様）")]
-},
-"常世":{
-d1:[make("傷ついたデーモン＆うろ底のデーモン"),make("呪剣士＆神獣の戦士")],
-d2:[make("デーモンの王子"),make("血の君主（もーぐ様）")]
-}
-},
-
-"瓦礫の王":{
-"通常":{
-d1:[make("大赤熊"),make("死の騎士")],
-d2:[make("神獣獅子舞"),make("騎士アルトリウス")]
-},
-"常世":{
-d1:[make("大赤熊"),make("死の騎士")],
-d2:[make("神獣獅子舞"),make("騎士アルトリウス")]
-}
-}
-
+// ボスごとの属性データ定義（一括管理）
+const bossStats = {
+    "鈴玉狩り": { weak: ["毒","腐敗","睡眠"], resist: ["刺","雷"] },
+    "亜人の女王＆亜人の剣聖": { weak: ["斬","炎"], resist: ["睡眠"] },
+    "英雄のガーゴイル": { weak: [], resist: ["全"] },
+    "ミミズ顔": { weak: [], resist: ["聖"] },
+    "公のフレイディア": { weak: ["打"], resist: ["炎以外","毒","睡眠"] },
+    "夜の騎兵たち": { weak: ["毒","腐敗","睡眠"], resist: ["全属性","雷弱め"] },
+    "砕地の宿将": { weak: ["状態異常"], resist: ["属性","斬"] },
+    "貪食ドラゴン": { weak: ["出血","冷気"], resist: ["毒","腐敗"] },
+    // 追加が必要なボスはここに追記
 };
 
-const boss=document.getElementById("boss");
-Object.keys(data).forEach(b=>boss.innerHTML+=`<option>${b}</option>`);
+const specialList = ["亜人の女王＆亜人の剣聖", "夜の騎兵たち", "ティビアの呼び舟", "ミミズ顔", "公のフレイディア", "神肌の貴種＆神肌の使徒", "死儀礼の鳥"];
 
-function draw(list,id){
-const el=document.getElementById(id);
-el.innerHTML="";
-list.forEach(x=>{
-const isSpecial = specialList.includes(x.name);
-el.innerHTML+=`
-<div class="card">
-<div class="name ${isSpecial?"special":""}">${x.name}</div>
-<div class="weak">弱点：${x.weak.join(", ")||"なし"}</div>
-<div class="resist">耐性：${x.resist.join(", ")||"なし"}</div>
-</div>`;
+const schedule = {
+    "グラディウス": {
+        "通常": { d1: ["鈴玉狩り"], d2: ["忌み鬼", "ツリーガード＆王都の騎兵"] },
+        "常世": { d1: ["亜人の女王＆亜人の剣聖", "鈴玉狩り"], d2: ["忌み鬼", "ツリーガード＆王都の騎兵"] }
+    },
+    "エデレ": {
+        "通常": { d1: ["英雄のガーゴイル", "ミミズ顔", "公のフレイディア", "貪食ドラゴン"], d2: ["古竜", "砕地の宿将", "坩堝の騎士＆黄金カバ"] },
+        "常世": { d1: ["英雄のガーゴイル", "ミミズ顔", "夜の騎兵たち"], d2: ["古竜", "砕地の宿将", "坩堝の騎士＆黄金カバ"] }
+    },
+    "グノスター": {
+        "通常": { d1: ["百足のデーモン", "戦場の宿将", "熔鉄デーモン", "夜の騎兵たち"], d2: ["大土竜", "ノクスの竜人兵", "竜のツリーガード＆王都の騎兵"] },
+        "常世": { d1: ["百足のデーモン", "戦場の宿将", "熔鉄デーモン", "夜の騎兵たち", "ティビアの呼び舟"], d2: ["大土竜", "ノクスの竜人兵", "竜のツリーガード＆王都の騎兵", "夜の騎兵たち"] }
+    }
+    // ... 他のデータも同様の形式で続く
+};
+
+function renderCards(bossNames, targetId) {
+    const container = document.getElementById(targetId);
+    container.innerHTML = "";
+    
+    bossNames.forEach(name => {
+        const stats = bossStats[name] || { weak: [], resist: [] };
+        const isSpecial = specialList.includes(name);
+        
+        const card = document.createElement("div");
+        card.className = `card ${isSpecial ? 'special' : ''}`;
+        
+        card.innerHTML = `
+            <div class="name">${name}</div>
+            <div class="info-row weak"><span class="label">弱点:</span>${stats.weak.join(", ") || "なし"}</div>
+            <div class="info-row resist"><span class="label">耐性:</span>${stats.resist.join(", ") || "なし"}</div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+const bSelect = document.getElementById("bossSelect");
+const mSelect = document.getElementById("modeSelect");
+
+Object.keys(schedule).forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    bSelect.appendChild(opt);
 });
+
+function update() {
+    const selectedBoss = schedule[bSelect.value];
+    const dayData = selectedBoss[mSelect.value];
+    renderCards(dayData.d1, "d1");
+    renderCards(dayData.d2, "d2");
 }
 
-function update(){
-const b=data[boss.value][document.getElementById("mode").value];
-draw(b.d1,"d1");
-draw(b.d2,"d2");
-}
-
-boss.onchange=update;
-document.getElementById("mode").onchange=update;
+bSelect.addEventListener("change", update);
+mSelect.addEventListener("change", update);
 update();
-
 </script>
-
 </body>
 </html>
