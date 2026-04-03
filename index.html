@@ -1,64 +1,21 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link rel="apple-touch-icon" href="icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<title>ナイトレイン逆引き</title>
-
-<style>
-body { font-family: sans-serif; background: #111; color: #eee; padding: 15px; }
-select { width: 100%; padding: 12px; font-size: 16px; margin-bottom: 10px; }
-.card { background: #222; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
-.name { font-size: 16px; font-weight: bold; }
-.weak { color: #6cf; }
-.resist { color: #f66; }
-h2 { margin-top: 20px; }
-</style>
-</head>
-
-<body>
-
-<h2>夜の王</h2>
-<select id="bossSelect"></select>
-
-<select id="modeSelect">
-<option value="通常">通常</option>
-<option value="常世">常世</option>
-</select>
-
-<h2>1日目</h2>
-<div id="day1"></div>
-
-<h2>2日目</h2>
-<div id="day2"></div>
-
 <script>
+const empty = {weak:[],resist:[]};
+
+const make = (name)=>({name, ...empty});
+
 const data = {
 
 "グラディウス": {
 "通常": {
-"day1":[
-{name:"鈴玉狩り",weak:["毒","腐敗","睡眠"],resist:["刺","雷"]}
-],
-"day2":[
-{name:"忌み鬼",weak:[],resist:[]},
-{name:"ツリーガード＆王都の騎兵",weak:[],resist:[]}
-]
+"day1":[make("鈴玉狩り")],
+"day2":[make("忌み鬼"),make("ツリーガード＆王都の騎兵")]
 },
 "常世": {
 "day1":[
 {name:"亜人の女王＆亜人の剣聖",weak:["斬","炎"],resist:["睡眠"]},
 {name:"鈴玉狩り",weak:["毒","腐敗","睡眠"],resist:["刺","雷"]}
 ],
-"day2":[
-{name:"忌み鬼",weak:[],resist:[]},
-{name:"ツリーガード＆王都の騎兵",weak:[],resist:[]}
-]
+"day2":[make("忌み鬼"),make("ツリーガード＆王都の騎兵")]
 }
 },
 
@@ -70,11 +27,7 @@ const data = {
 {name:"公のフレイディア",weak:["打"],resist:["炎以外","毒","睡眠"]},
 {name:"貪食ドラゴン",weak:["出血","冷気"],resist:["毒","腐敗"]}
 ],
-"day2":[
-{name:"古竜",weak:[],resist:[]},
-{name:"砕地の宿将",weak:["状態異常"],resist:["属性","斬"]},
-{name:"坩堝の騎士＆黄金カバ",weak:[],resist:[]}
-]
+"day2":[make("古竜"),{name:"砕地の宿将",weak:["状態異常"],resist:["属性","斬"]},make("坩堝の騎士＆黄金カバ")]
 },
 "常世": {
 "day1":[
@@ -82,83 +35,86 @@ const data = {
 {name:"ミミズ顔",weak:[],resist:["聖"]},
 {name:"夜の騎兵たち",weak:["毒","腐敗","睡眠"],resist:["全属性","雷弱め"]}
 ],
-"day2":[
-{name:"古竜",weak:[],resist:[]},
-{name:"砕地の宿将",weak:["状態異常"],resist:["属性","斬"]},
-{name:"坩堝の騎士＆黄金カバ",weak:[],resist:[]}
-]
+"day2":[make("古竜"),{name:"砕地の宿将",weak:["状態異常"],resist:["属性","斬"]},make("坩堝の騎士＆黄金カバ")]
+}
+},
+
+"グノスター": {
+"通常": {
+"day1":[make("百足のデーモン"),make("戦場の宿将"),make("熔鉄デーモン"),make("夜の騎兵たち")],
+"day2":[make("大土竜"),make("ノクスの竜人兵"),make("竜のツリーガード＆王都の騎兵")]
+},
+"常世": {
+"day1":[make("百足のデーモン"),make("戦場の宿将"),make("熔鉄デーモン"),make("夜の騎兵たち"),make("ティビアの呼び舟")],
+"day2":[make("大土竜"),make("ノクスの竜人兵"),make("竜のツリーガード＆王都の騎兵"),make("夜の騎兵たち")]
+}
+},
+
+"フルゴール": {
+"通常": {
+"day1":[make("王族の幽鬼"),make("貪食ドラゴン"),make("百足のデーモン"),make("夜の騎兵たち")],
+"day2":[make("ノクスの竜人兵"),make("砕地の宿将"),make("無名の王")]
+},
+"常世": {
+"day1":[make("王族の幽鬼"),make("ミミズ顔"),make("百足のデーモン"),make("夜の騎兵たち")],
+"day2":[make("ノクスの竜人兵"),make("砕地の宿将"),make("無名の王")]
+}
+},
+
+"カリゴ": {
+"通常": {
+"day1":[make("燻れた樹霊"),make("接ぎ木の君主"),make("熔鉄デーモン")],
+"day2":[make("冷たい谷の踊り子"),make("竜のツリーガード＆王都の騎兵")]
+},
+"常世": {
+"day1":[make("燻れた樹霊"),make("接ぎ木の君主"),make("熔鉄デーモン"),make("公のフレイディア"),make("ティビアの呼び舟")],
+"day2":[make("冷たい谷の踊り子"),make("竜のツリーガード＆王都の騎兵"),make("神肌の貴種＆神肌の使徒")]
+}
+},
+
+"リブラ": {
+"通常": {
+"day1":[make("王族の幽鬼"),make("公のフレイディア"),make("ティビアの呼び舟"),make("百足のデーモン")],
+"day2":[make("死儀礼の鳥"),make("坩堝の騎士＆黄金カバ")]
+},
+"常世": {
+"day1":[make("王族の幽鬼"),make("公のフレイディア"),make("ティビアの呼び舟"),make("百足のデーモン"),make("戦場の宿将")],
+"day2":[make("死儀礼の鳥"),make("坩堝の騎士＆黄金カバ"),make("神肌の貴種＆神肌の使徒")]
 }
 },
 
 "マリス": {
 "通常": {
-"day1":[
-{name:"英雄のガーゴイル",weak:[],resist:["全"]},
-{name:"貪食ドラゴン",weak:["出血","冷気"],resist:["毒","腐敗"]},
-{name:"接ぎ木の君主",weak:["状態異常"],resist:["聖"]},
-{name:"ミミズ顔",weak:[],resist:["聖"]},
-{name:"熔鉄デーモン",weak:["毒","腐敗"],resist:["出血","睡眠","炎"]}
-],
-"day2":[
-{name:"神肌の貴種＆神肌の使徒",weak:[],resist:[]},
-{name:"ツリーガード＆王都の騎兵",weak:[],resist:[]},
-{name:"降る星の成獣",weak:[],resist:[]}
-]
+"day1":[make("英雄のガーゴイル"),make("貪食ドラゴン"),make("接ぎ木の君主"),make("ミミズ顔"),make("熔鉄デーモン")],
+"day2":[make("神肌の貴種＆神肌の使徒"),make("ツリーガード＆王都の騎兵"),make("降る星の成獣")]
 },
 "常世": {
-"day1":[
-{name:"英雄のガーゴイル",weak:[],resist:["全"]},
-{name:"貪食ドラゴン",weak:["出血","冷気"],resist:["毒","腐敗"]},
-{name:"接ぎ木の君主",weak:["状態異常"],resist:["聖"]},
-{name:"ミミズ顔",weak:[],resist:["聖"]},
-{name:"熔鉄デーモン",weak:["毒","腐敗"],resist:["出血","睡眠","炎"]}
-],
-"day2":[
-{name:"神肌の貴種＆神肌の使徒",weak:[],resist:[]},
-{name:"ツリーガード＆王都の騎兵",weak:[],resist:[]},
-{name:"降る星の成獣",weak:[],resist:[]}
-]
+"day1":[make("英雄のガーゴイル"),make("貪食ドラゴン"),make("接ぎ木の君主"),make("ミミズ顔"),make("熔鉄デーモン")],
+"day2":[make("神肌の貴種＆神肌の使徒"),make("ツリーガード＆王都の騎兵"),make("降る星の成獣")]
+}
+},
+
+"ハルモニア": {
+"通常": {
+"day1":[make("傷ついたデーモン＆うろ底のデーモン"),make("呪剣士＆神獣の戦士")],
+"day2":[make("デーモンの王子"),make("血の君主（もーぐ様）")]
+},
+"常世": {
+"day1":[make("傷ついたデーモン＆うろ底のデーモン"),make("呪剣士＆神獣の戦士")],
+"day2":[make("デーモンの王子"),make("血の君主（もーぐ様）")]
+}
+},
+
+"瓦礫の王": {
+"通常": {
+"day1":[make("大赤熊"),make("死の騎士")],
+"day2":[make("神獣獅子舞"),make("騎士アルトリウス")]
+},
+"常世": {
+"day1":[make("大赤熊"),make("死の騎士")],
+"day2":[make("神獣獅子舞"),make("騎士アルトリウス")]
 }
 }
 
 };
-
-function render(list, id){
-const el=document.getElementById(id);
-el.innerHTML="";
-
-list.forEach(b=>{
-el.innerHTML+=`
-<div class="card">
-<div class="name">${b.name}</div>
-<div class="weak">弱点：${b.weak.length ? b.weak.join(", ") : "なし"}</div>
-<div class="resist">耐性：${b.resist.length ? b.resist.join(", ") : "なし"}</div>
-</div>`;
-});
-}
-
-const bossSelect=document.getElementById("bossSelect");
-
-Object.keys(data).forEach(b=>{
-bossSelect.innerHTML+=`<option>${b}</option>`;
-});
-
-function update(){
-const boss=bossSelect.value;
-const mode=document.getElementById("modeSelect").value;
-
-let info=data[boss];
-info = info[mode];
-
-render(info.day1,"day1");
-render(info.day2,"day2");
-}
-
-bossSelect.onchange=update;
-document.getElementById("modeSelect").onchange=update;
-
-update();
 </script>
-
-</body>
-</html>
