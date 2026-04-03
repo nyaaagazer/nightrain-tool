@@ -10,12 +10,13 @@
 <title>ナイトレイン逆引き</title>
 
 <style>
-body { font-family: sans-serif; background:#111; color:#eee; padding:15px;}
+body { font-family:sans-serif; background:#111; color:#eee; padding:15px;}
 select { width:100%; padding:12px; margin-bottom:10px;}
 .card { background:#222; padding:10px; margin-bottom:8px; border-radius:8px;}
 .name { font-weight:bold;}
 .weak { color:#6cf;}
 .resist { color:#f66;}
+.special { color:#c77dff; }
 </style>
 </head>
 
@@ -38,6 +39,16 @@ select { width:100%; padding:12px; margin-bottom:10px;}
 function make(name, weak=[], resist=[]){
 return {name, weak, resist};
 }
+
+const specialList = [
+"亜人の女王＆亜人の剣聖",
+"夜の騎兵たち",
+"ティビアの呼び舟",
+"ミミズ顔",
+"公のフレイディア",
+"神肌の貴種＆神肌の使徒",
+"死儀礼の鳥"
+];
 
 const data = {
 
@@ -161,9 +172,10 @@ function draw(list,id){
 const el=document.getElementById(id);
 el.innerHTML="";
 list.forEach(x=>{
+const isSpecial = specialList.includes(x.name);
 el.innerHTML+=`
 <div class="card">
-<div class="name">${x.name}</div>
+<div class="name ${isSpecial?"special":""}">${x.name}</div>
 <div class="weak">弱点：${x.weak.join(", ")||"なし"}</div>
 <div class="resist">耐性：${x.resist.join(", ")||"なし"}</div>
 </div>`;
