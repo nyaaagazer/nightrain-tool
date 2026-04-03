@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>ナイトレイン逆引き 全ボス対応版</title>
+    <title>ナイトレイン逆引き 特定色変え版</title>
     <style>
         :root {
             --bg-color: #111;
@@ -16,28 +16,35 @@
             --special-color: #c77dff;
             --border-color: #444;
         }
-        body { font-family: sans-serif; background: var(--bg-color); color: var(--text-main); padding: 15px; }
+        body { font-family: sans-serif; background: var(--bg-color); color: var(--text-main); padding: 15px; margin: 0; }
+        .sticky-header { position: sticky; top: 0; background: var(--bg-color); padding: 10px 0; z-index: 10; border-bottom: 1px solid var(--border-color); margin-bottom: 10px; }
         select { 
             width: 100%; padding: 12px; margin-bottom: 10px; 
             background: var(--card-bg); color: #fff; border: 1px solid var(--border-color); border-radius: 8px;
-            font-size: 16px;
+            font-size: 16px; outline: none;
         }
-        h3 { border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-top: 20px; }
-        .card { background: var(--card-bg); padding: 12px; margin-bottom: 8px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-        .name { font-weight: bold; font-size: 1.1em; margin-bottom: 5px; }
-        .special { color: var(--special-color); border: 1px solid var(--special-color); }
-        .weak { color: var(--weak-color); font-size: 0.9em; }
+        h3 { border-left: 4px solid #555; padding-left: 10px; margin-top: 20px; font-size: 1.1em; }
+        .card { background: var(--card-bg); padding: 12px; margin-bottom: 8px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); border-left: 4px solid #444; }
+        .name { font-weight: bold; font-size: 1.1em; margin-bottom: 6px; }
+        
+        /* 特定ボス用の紫色設定 */
+        .highlight { border-left-color: var(--special-color) !important; }
+        .highlight .name { color: var(--special-color); }
+        
+        .weak { color: var(--weak-color); font-size: 0.9em; margin-bottom: 2px; }
         .resist { color: var(--resist-color); font-size: 0.9em; }
-        .label { font-weight: bold; margin-right: 5px; }
+        .label { font-weight: bold; margin-right: 5px; opacity: 0.8; }
     </style>
 </head>
 <body>
 
-<select id="bossSelect"></select>
-<select id="modeSelect">
-    <option value="通常">通常</option>
-    <option value="常世">常世</option>
-</select>
+<div class="sticky-header">
+    <select id="bossSelect"></select>
+    <select id="modeSelect">
+        <option value="通常">通常モード</option>
+        <option value="常世">常世モード</option>
+    </select>
+</div>
 
 <h3>1日目</h3>
 <div id="d1"></div>
@@ -46,7 +53,7 @@
 <div id="d2"></div>
 
 <script>
-// --- 1. ボスごとの性能図鑑 (ここにデータを集約) ---
+// --- 1. ボスマスタデータ ---
 const bossMasterData = {
     "鈴玉狩り": { weak: ["毒","腐敗","睡眠"], resist: ["刺","雷"] },
     "忌み鬼": { weak: ["なし"], resist: ["なし"] },
@@ -57,7 +64,7 @@ const bossMasterData = {
     "公のフレイディア": { weak: ["打"], resist: ["炎以外","毒","睡眠"] },
     "貪食ドラゴン": { weak: ["出血","冷気"], resist: ["毒","腐敗"] },
     "古竜": { weak: ["なし"], resist: ["なし"] },
-    "砕地の宿将": { weak: ["状態異常"], resist: ["属性","斬"] },
+    "僻地の宿将": { weak: ["状態異常"], resist: ["属性","斬"] },
     "坩堝の騎士＆黄金カバ": { weak: ["なし"], resist: ["なし"] },
     "夜の騎兵たち": { weak: ["毒","腐敗","睡眠"], resist: ["全属性","雷弱め"] },
     "百足のデーモン": { weak: ["なし"], resist: ["なし"] },
@@ -70,6 +77,7 @@ const bossMasterData = {
     "王族の幽鬼": { weak: ["なし"], resist: ["なし"] },
     "無名の王": { weak: ["なし"], resist: ["なし"] },
     "燻れた樹霊": { weak: ["なし"], resist: ["なし"] },
+    "爛れた樹霊": { weak: ["なし"], resist: ["なし"] },
     "接ぎ木の君主": { weak: ["なし"], resist: ["なし"] },
     "冷たい谷の踊り子": { weak: ["なし"], resist: ["なし"] },
     "神肌の貴種＆神肌の使徒": { weak: ["なし"], resist: ["なし"] },
@@ -78,17 +86,12 @@ const bossMasterData = {
     "傷ついたデーモン＆うろ底のデーモン": { weak: ["なし"], resist: ["なし"] },
     "呪剣士＆神獣の戦士": { weak: ["なし"], resist: ["なし"] },
     "デーモンの王子": { weak: ["なし"], resist: ["なし"] },
-    "血の君主（もーぐ様）": { weak: ["なし"], resist: ["なし"] },
+    "血の君主": { weak: ["なし"], resist: ["なし"] },
     "大赤熊": { weak: ["なし"], resist: ["なし"] },
     "死の騎士": { weak: ["なし"], resist: ["なし"] },
     "神獣獅子舞": { weak: ["なし"], resist: ["なし"] },
     "騎士アルトリウス": { weak: ["なし"], resist: ["なし"] }
 };
-
-const specialNames = [
-    "亜人の女王＆亜人の剣聖", "夜の騎兵たち", "ティビアの呼び舟", 
-    "ミミズ顔", "公のフレイディア", "神肌の貴種＆神肌の使徒", "死儀礼の鳥"
-];
 
 // --- 2. スケジュールデータ ---
 const schedule = {
@@ -102,7 +105,7 @@ const schedule = {
     },
     "グノスター": {
         "通常": { d1: ["百足のデーモン", "戦場の宿将", "熔鉄デーモン", "夜の騎兵たち"], d2: ["大土竜", "ノクスの竜人兵", "竜のツリーガード"] },
-        "常世": { d1: ["爛れた樹霊","百足のデーモン", "戦場の宿将", "熔鉄デーモン",  "ティビアの呼び舟"], d2: ["大土竜", "ノクスの竜人兵", "竜のツリーガード"] }
+        "常世": { d1: ["爛れた樹霊","百足のデーモン", "戦場の宿将", "熔鉄デーモン", "ティビアの呼び舟"], d2: ["大土竜", "ノクスの竜人兵", "竜のツリーガード"] }
     },
     "フルゴール": {
         "通常": { d1: ["王族の幽鬼", "貪食ドラゴン", "百足のデーモン", "夜の騎兵たち"], d2: ["ノクスの竜人兵", "僻地の宿将", "無名の王"] },
@@ -117,8 +120,8 @@ const schedule = {
         "常世": { d1: ["王族の幽鬼", "公のフレイディア", "ティビアの呼び舟", "百足のデーモン", "戦場の宿将"], d2: ["死儀礼の鳥", "坩堝の騎士＆黄金カバ", "神肌の貴種＆神肌の使徒"] }
     },
     "マリス": {
-        "通常": { d1: ["英雄のガーゴイル", "貪食ドラゴン", "接ぎ木の君主", "ミミズ顔", "熔鉄デーモン"], d2: ["神肌の貴種＆神肌の使徒", "ツリーガード＆王都の騎兵", "降る星の成獣"] },
-        "常世": { d1: ["英雄のガーゴイル", "貪食ドラゴン", "接ぎ木の君主", "ミミズ顔", "熔鉄デーモン"], d2: ["神肌の貴種＆神肌の使徒", "ツリーガード＆王都の騎兵", "降る星の成獣"] }
+        "通常": { d1: ["英雄のガーゴイル", "貪食ドラゴン", "接ぎ木の君主", "ミミズ顔", "熔鉄デーモン"], d2: ["神肌の貴種＆神肌の使徒", "ツリーガード", "降る星の成獣"] },
+        "常世": { d1: ["英雄のガーゴイル", "貪食ドラゴン", "接ぎ木の君主", "ミミズ顔", "熔鉄デーモン"], d2: ["神肌の貴種＆神肌の使徒", "ツリーガード", "降る星の成獣"] }
     },
     "ハルモニア": {
         "通常": { d1: ["傷ついたデーモン＆うろ底のデーモン", "呪剣士＆神獣の戦士"], d2: ["デーモンの王子", "血の君主"] },
@@ -130,11 +133,28 @@ const schedule = {
     }
 };
 
-// --- 3. 処理ロジック ---
+// --- 3. 判定ロジック ---
+function shouldHighlight(routeName, mode, day, bossName) {
+    if (mode !== "常世") return false;
+
+    if (routeName === "グラディウス" && bossName === "亜人の女王＆亜人の剣聖") return true;
+    if (routeName === "エデレ" && bossName === "夜の騎兵たち") return true;
+    if (routeName === "グノスター" && bossName === "ティビアの呼び舟") return true;
+    if (routeName === "フルゴール" && bossName === "ミミズ顔") return true;
+    if (routeName === "カリゴ") {
+        return ["公のフレイディア", "ティビアの呼び舟", "神肌の貴種＆神肌の使徒"].includes(bossName);
+    }
+    if (routeName === "リブラ") {
+        return ["戦場の宿将", "神肌の貴種＆神肌の使徒"].includes(bossName);
+    }
+    
+    return false;
+}
+
+// --- 4. 描画処理 ---
 const bSelect = document.getElementById("bossSelect");
 const mSelect = document.getElementById("modeSelect");
 
-// セレクトボックスの生成
 Object.keys(schedule).forEach(name => {
     const opt = document.createElement("option");
     opt.value = name;
@@ -142,14 +162,18 @@ Object.keys(schedule).forEach(name => {
     bSelect.appendChild(opt);
 });
 
-function draw(names, targetId) {
+function draw(names, targetId, dayKey) {
     const el = document.getElementById(targetId);
+    const routeName = bSelect.value;
+    const mode = mSelect.value;
     el.innerHTML = "";
+    
     names.forEach(name => {
-        const data = bossMasterData[name] || { weak: ["未設定"], resist: ["未設定"] };
-        const isSpecial = specialNames.includes(name);
+        const data = bossMasterData[name] || { weak: ["不明"], resist: ["不明"] };
+        const highlightClass = shouldHighlight(routeName, mode, dayKey, name) ? "highlight" : "";
+        
         el.innerHTML += `
-            <div class="card ${isSpecial ? "special" : ""}">
+            <div class="card ${highlightClass}">
                 <div class="name">${name}</div>
                 <div class="weak"><span class="label">弱点:</span>${data.weak.join(", ") || "なし"}</div>
                 <div class="resist"><span class="label">耐性:</span>${data.resist.join(", ") || "なし"}</div>
@@ -159,8 +183,8 @@ function draw(names, targetId) {
 
 function update() {
     const route = schedule[bSelect.value][mSelect.value];
-    draw(route.d1, "d1");
-    draw(route.d2, "d2");
+    draw(route.d1, "d1", "d1");
+    draw(route.d2, "d2", "d2");
 }
 
 bSelect.onchange = update;
