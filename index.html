@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>ナイトレイン逆引き 推測機能付き</title>
+    <title>ナイトレイン逆引き コンプリート版</title>
     <style>
         :root {
             --bg-color: #111;
@@ -46,52 +46,54 @@
 </div>
 
 <div id="displayArea">
-    <h3>1日目</h3>
+    <h3 id="d1_title">1日目</h3>
     <div id="d1"></div>
-    <h3>2日目以降の候補</h3>
+    <h3 id="d2_title">2日目以降の候補</h3>
     <div id="d2"></div>
 </div>
 
 <script>
+// --- 1. ボスマスタデータ (攻略情報を反映) ---
 const bossMasterData = {
-    "鈴玉狩り": { weak: ["毒","腐敗","睡眠"], resist: ["刺","雷"] },
-    "忌み鬼": { weak: ["なし"], resist: ["なし"] },
-    "ツリーガード": { weak: ["なし"], resist: ["なし"] },
-    "亜人の女王＆亜人の剣聖": { weak: ["斬","炎"], resist: ["睡眠"] },
-    "英雄のガーゴイル": { weak: [], resist: ["全"] },
-    "ミミズ顔": { weak: [], resist: ["聖"] },
-    "公のフレイディア": { weak: ["打"], resist: ["炎以外","毒","睡眠"] },
-    "貪食ドラゴン": { weak: ["出血","冷気"], resist: ["毒","腐敗"] },
-    "古竜": { weak: ["なし"], resist: ["なし"] },
-    "僻地の宿将": { weak: ["状態異常"], resist: ["属性","斬"] },
-    "坩堝の騎士＆黄金カバ": { weak: ["なし"], resist: ["なし"] },
-    "夜の騎兵たち": { weak: ["毒","腐敗","睡眠"], resist: ["全属性","雷弱め"] },
-    "百足のデーモン": { weak: ["なし"], resist: ["なし"] },
-    "戦場の宿将": { weak: ["なし"], resist: ["なし"] },
-    "熔鉄デーモン": { weak: ["なし"], resist: ["なし"] },
-    "大土竜": { weak: ["なし"], resist: ["なし"] },
-    "ノクスの竜人兵": { weak: ["なし"], resist: ["なし"] },
-    "竜のツリーガード": { weak: ["なし"], resist: ["なし"] },
-    "ティビアの呼び舟": { weak: ["なし"], resist: ["なし"] },
-    "王族の幽鬼": { weak: ["なし"], resist: ["なし"] },
-    "無名の王": { weak: ["なし"], resist: ["なし"] },
-    "燻れた樹霊": { weak: ["なし"], resist: ["なし"] },
-    "爛れた樹霊": { weak: ["なし"], resist: ["なし"] },
-    "接ぎ木の君主": { weak: ["なし"], resist: ["なし"] },
-    "冷たい谷の踊り子": { weak: ["なし"], resist: ["なし"] },
-    "神肌の貴種＆神肌の使徒": { weak: ["なし"], resist: ["なし"] },
-    "死儀礼の鳥": { weak: ["なし"], resist: ["なし"] },
-    "降る星の成獣": { weak: ["なし"], resist: ["なし"] },
-    "傷ついたデーモン＆うろ底のデーモン": { weak: ["なし"], resist: ["なし"] },
-    "呪剣士＆神獣の戦士": { weak: ["なし"], resist: ["なし"] },
-    "デーモンの王子": { weak: ["なし"], resist: ["なし"] },
-    "血の君主": { weak: ["なし"], resist: ["なし"] },
-    "大赤熊": { weak: ["なし"], resist: ["なし"] },
-    "死の騎士": { weak: ["なし"], resist: ["なし"] },
-    "神獣獅子舞": { weak: ["なし"], resist: ["なし"] },
-    "騎士アルトリウス": { weak: ["なし"], resist: ["なし"] }
+    "鈴玉狩り": { weak: ["刺","⚡雷","毒","腐敗","睡眠"], resist: ["打"] },
+    "忌み鬼": { weak: ["出血","冷気","毒"], resist: ["聖"] },
+    "ツリーガード": { weak: ["打","⚡雷"], resist: ["刺","聖"] },
+    "亜人の女王＆亜人の剣聖": { weak: ["斬","🔥炎"], resist: ["睡眠"] },
+    "英雄のガーゴイル": { weak: ["打"], resist: ["全属性","状態異常"] },
+    "ミミズ顔": { weak: ["物理全般"], resist: ["聖","属性全般"] },
+    "公のフレイディア": { weak: ["打"], resist: ["毒","睡眠","属性全般"] },
+    "貪食ドラゴン": { weak: ["刺","⚡雷","出血","冷気"], resist: ["毒","腐敗"] },
+    "古竜": { weak: ["刺"], resist: ["⚡雷","🔥炎"] },
+    "僻地の宿将": { weak: ["刺","🔥炎","状態異常"], resist: ["魔術","冷気"] },
+    "坩堝の騎士＆黄金カバ": { weak: ["🔥炎","⚡雷"], resist: ["聖","状態異常"] },
+    "夜の騎兵たち": { weak: ["打","⚡雷","毒","腐敗","睡眠"], resist: ["聖"] },
+    "百足のデーモン": { weak: ["冷気","魔術"], resist: ["🔥炎"] },
+    "戦場の宿将": { weak: ["刺","🔥炎"], resist: ["属性耐性高め"] },
+    "熔鉄デーモン": { weak: ["⚡雷","打"], resist: ["🔥炎"] },
+    "大土竜": { weak: ["打","⚡雷"], resist: ["🔥炎","魔術"] },
+    "ノクスの竜人兵": { weak: ["斬","⚡雷"], resist: ["冷気","毒"] },
+    "竜のツリーガード": { weak: ["打","毒","腐敗"], resist: ["⚡雷","🔥炎","聖"] },
+    "ティビアの呼び舟": { weak: ["聖","打"], resist: ["状態異常無効"] },
+    "王族の幽鬼": { weak: ["回復祈祷","出血"], resist: ["毒","腐敗"] },
+    "無名の王": { weak: ["🔥炎"], resist: ["⚡雷"] },
+    "燻れた樹霊": { weak: ["🔥炎","冷気"], resist: ["聖","魔術"] },
+    "爛れた樹霊": { weak: ["🔥炎"], resist: ["聖","毒"] },
+    "接ぎ木の君主": { weak: ["冷気","出血"], resist: ["聖"] },
+    "冷たい谷の踊り子": { weak: ["打","🔥炎","闇"], resist: ["冷気"] },
+    "神肌の貴種＆神肌の使徒": { weak: ["斬","出血","睡眠"], resist: ["🔥炎","聖"] },
+    "死儀礼の鳥": { weak: ["聖","打"], resist: ["🔥炎","冷気"] },
+    "降る星の成獣": { weak: ["打","属性全般"], resist: ["物理属性以外"] },
+    "傷ついたデーモン＆うろ底のデーモン": { weak: ["出血","冷気"], resist: ["🔥炎","毒"] },
+    "呪剣士＆神獣の戦士": { weak: ["🔥炎","出血"], resist: ["冷気"] },
+    "デーモンの王子": { weak: ["出血"], resist: ["🔥炎","毒"] },
+    "血の君主": { weak: ["出血（有効）","物理全般"], resist: ["🔥炎"] },
+    "大赤熊": { weak: ["🔥炎","出血"], resist: ["なし"] },
+    "死の騎士": { weak: ["物理全般","冷気"], resist: ["⚡雷"] },
+    "神獣獅子舞": { weak: ["🔥炎","出血"], resist: ["冷気","⚡雷"] },
+    "騎士アルトリウス": { weak: ["なし"], resist: ["属性耐性全般"] }
 };
 
+// --- 2. スケジュールデータ ---
 const schedule = {
     "グラディウス": {
         "通常": { d1: ["鈴玉狩り"], d2: ["忌み鬼", "ツリーガード"] },
@@ -131,6 +133,7 @@ const schedule = {
     }
 };
 
+// --- 3. ロジック ---
 function shouldHighlight(routeName, mode, bossName) {
     if (mode !== "常世") return false;
     const targets = {
@@ -148,7 +151,6 @@ const bSelect = document.getElementById("bossSelect");
 const mSelect = document.getElementById("modeSelect");
 const rSelect = document.getElementById("reverseSelect");
 
-// セレクトボックス初期化
 Object.keys(schedule).forEach(name => {
     const opt = document.createElement("option");
     opt.value = name;
@@ -164,9 +166,7 @@ function updateReverseOptions() {
     rSelect.innerHTML = '<option value="">▼ 1日目のボスを選択</option>';
     const mode = mSelect.value;
     const firstDayBosses = new Set();
-    Object.values(schedule).forEach(routes => {
-        routes[mode].d1.forEach(b => firstDayBosses.add(b));
-    });
+    Object.values(schedule).forEach(routes => routes[mode].d1.forEach(b => firstDayBosses.add(b)));
     Array.from(firstDayBosses).sort().forEach(b => {
         const opt = document.createElement("option");
         opt.value = b;
@@ -194,9 +194,10 @@ function update() {
 
     if (bSelect.value === "REVERSE") {
         rSelect.style.display = "block";
+        document.getElementById("d1_title").textContent = "出現したボス";
+        document.getElementById("d2_title").textContent = "該当ルートと2日目以降の候補";
         const targetBoss = rSelect.value;
         if (!targetBoss) return;
-
         Object.keys(schedule).forEach(routeName => {
             const routeData = schedule[routeName][mode];
             if (routeData.d1.includes(targetBoss)) {
@@ -206,6 +207,8 @@ function update() {
         });
     } else {
         rSelect.style.display = "none";
+        document.getElementById("d1_title").textContent = "1日目";
+        document.getElementById("d2_title").textContent = "2日目";
         const routeData = schedule[bSelect.value][mode];
         routeData.d1.forEach(b => drawCard(b, d1, null, mode));
         routeData.d2.forEach(b => drawCard(b, d2, null, mode));
@@ -218,6 +221,5 @@ rSelect.onchange = update;
 updateReverseOptions();
 update();
 </script>
-
 </body>
 </html>
