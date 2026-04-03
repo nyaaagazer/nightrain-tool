@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ★アイコン設定 -->
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,35 +11,12 @@
 <title>ナイトレイン逆引き</title>
 
 <style>
-body {
-  font-family: sans-serif;
-  background: #111;
-  color: #eee;
-  padding: 15px;
-}
-
-select {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  margin-bottom: 10px;
-}
-
-.card {
-  background: #222;
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
-
-.name {
-  font-size: 16px;
-  font-weight: bold;
-}
-
+body { font-family: sans-serif; background: #111; color: #eee; padding: 15px; }
+select { width: 100%; padding: 12px; font-size: 16px; margin-bottom: 10px; }
+.card { background: #222; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+.name { font-size: 16px; font-weight: bold; }
 .weak { color: #6cf; }
 .resist { color: #f66; }
-
 h2 { margin-top: 20px; }
 </style>
 </head>
@@ -115,6 +91,21 @@ const data = {
 },
 
 "マリス": {
+"通常": {
+"day1":[
+{name:"英雄のガーゴイル",weak:[],resist:["全"]},
+{name:"貪食ドラゴン",weak:["出血","冷気"],resist:["毒","腐敗"]},
+{name:"接ぎ木の君主",weak:["状態異常"],resist:["聖"]},
+{name:"ミミズ顔",weak:[],resist:["聖"]},
+{name:"熔鉄デーモン",weak:["毒","腐敗"],resist:["出血","睡眠","炎"]}
+],
+"day2":[
+{name:"神肌の貴種＆神肌の使徒",weak:[],resist:[]},
+{name:"ツリーガード＆王都の騎兵",weak:[],resist:[]},
+{name:"降る星の成獣",weak:[],resist:[]}
+]
+},
+"常世": {
 "day1":[
 {name:"英雄のガーゴイル",weak:[],resist:["全"]},
 {name:"貪食ドラゴン",weak:["出血","冷気"],resist:["毒","腐敗"]},
@@ -128,6 +119,7 @@ const data = {
 {name:"降る星の成獣",weak:[],resist:[]}
 ]
 }
+}
 
 };
 
@@ -139,8 +131,8 @@ list.forEach(b=>{
 el.innerHTML+=`
 <div class="card">
 <div class="name">${b.name}</div>
-<div class="weak">弱点：${b.weak.join(", ") || "なし"}</div>
-<div class="resist">耐性：${b.resist.join(", ") || "なし"}</div>
+<div class="weak">弱点：${b.weak.length ? b.weak.join(", ") : "なし"}</div>
+<div class="resist">耐性：${b.resist.length ? b.resist.join(", ") : "なし"}</div>
 </div>`;
 });
 }
@@ -156,10 +148,7 @@ const boss=bossSelect.value;
 const mode=document.getElementById("modeSelect").value;
 
 let info=data[boss];
-
-if(info["通常"]){
-info=info[mode] || info["通常"];
-}
+info = info[mode];
 
 render(info.day1,"day1");
 render(info.day2,"day2");
