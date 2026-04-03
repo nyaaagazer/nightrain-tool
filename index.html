@@ -3,55 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ナイトレイン完全版</title>
 
+<!-- ★アイコン設定 -->
+<link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ナイトレイン">
-<link rel="apple-touch-icon" href="icon.png">
+
+<title>ナイトレイン逆引き</title>
 
 <style>
 body {
   font-family: sans-serif;
-  background: #0f1115;
-  color: #fff;
-  padding: 12px;
+  background: #111;
+  color: #eee;
+  padding: 15px;
 }
-
-h2 { margin-top: 16px; }
 
 select {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   font-size: 16px;
   margin-bottom: 10px;
-  border-radius: 10px;
-  border: none;
 }
 
 .card {
-  background: #1a1f27;
-  padding: 14px;
-  border-radius: 12px;
+  background: #222;
+  padding: 12px;
+  border-radius: 10px;
   margin-bottom: 10px;
 }
 
-.name { font-weight: bold; }
-
-.trigger {
-  color: #bb86fc;
+.name {
+  font-size: 16px;
   font-weight: bold;
 }
 
-.weak { color: #4fc3f7; }
-.resist { color: #ef5350; }
+.weak { color: #6cf; }
+.resist { color: #f66; }
+
+h2 { margin-top: 20px; }
 </style>
 </head>
 
 <body>
 
 <h2>夜の王</h2>
-<select id="boss"></select>
+<select id="bossSelect"></select>
+
+<select id="modeSelect">
+<option value="通常">通常</option>
+<option value="常世">常世</option>
+</select>
 
 <h2>1日目</h2>
 <div id="day1"></div>
@@ -60,139 +62,113 @@ select {
 <div id="day2"></div>
 
 <script>
+const data = {
 
-// ===== トリガーボス =====
-const triggerBosses = [
-"亜人の女王＆亜人の剣聖",
-"夜の騎兵たち",
-"ティビアの呼び舟",
-"ミミズ顔",
-"公のフレイディア",
-"神肌の貴種＆神肌の使徒",
-"戦場の宿将"
-];
-
-// ===== 耐性 =====
-const resist = {
-"亜人の女王＆亜人の剣聖":{weak:["斬","炎"],resist:["睡眠"]},
-"英雄のガーゴイル":{weak:[],resist:["全"]},
-"王族の幽鬼":{weak:["斬"],resist:["聖","睡眠"]},
-"公のフレイディア":{weak:["打"],resist:["炎以外","毒","睡眠"]},
-"鈴玉狩り":{weak:["毒","腐敗","睡眠"],resist:["刺","雷"]},
-"戦場の宿将":{weak:["状態異常"],resist:["属性","斬"]},
-"燻れた樹霊":{weak:["炎","冷気"],resist:["聖"]},
-"接ぎ木の君主":{weak:["状態異常"],resist:["聖"]},
-"ティビアの呼び舟":{weak:["斬","聖","腐敗"],resist:["腐敗以外"]},
-"貪食ドラゴン":{weak:["出血","冷気"],resist:["毒","腐敗"]},
-"ミミズ顔":{weak:[],resist:["聖"]},
-"百足のデーモン":{weak:[],resist:["炎"]},
-"熔鉄デーモン":{weak:["毒","腐敗"],resist:["出血","睡眠","炎"]},
-"夜の騎兵たち":{weak:["毒","腐敗","睡眠"],resist:["全属性"]},
-
-// DLC
-"ハルモニア":{weak:["打"],resist:["斬","炎","雷","聖"]},
-"呪剣士":{weak:["斬"],resist:[]},
-"神獣の戦士":{weak:[],resist:["斬","打","刺","魔","炎","雷"]},
-"傷ついたデーモン":{weak:["斬"],resist:["魔","炎","雷","聖"]},
-"うろ底のデーモン":{weak:["斬"],resist:["魔","炎","雷","聖"]},
-"デーモンの王子":{weak:["斬"],resist:["魔","炎","雷","聖"]},
-"血の君主（もーぐ様）":{weak:[],resist:["斬","打","刺","魔","炎","雷","聖"]},
-"瓦礫の王":{weak:["斬","刺","炎","聖"],resist:["雷"]},
-"大赤熊":{weak:["斬","炎"],resist:[]},
-"死の騎士":{weak:[],resist:["斬","打","刺","魔","炎","雷"]},
-"神獣獅子舞":{weak:[],resist:["斬","打","魔","雷","聖"]},
-"騎士アルトリウス":{weak:["打","雷","聖"],resist:["斬","魔","炎"]}
-};
-
-// ===== ルート =====
-const routes = {
-
-"グラディウス":{
-day1:["亜人の女王＆亜人の剣聖","鈴玉狩り"],
-day2:["忌み鬼","ツリーガード","夜の騎兵たち"]
+"グラディウス": {
+"通常": {
+"day1":[
+{name:"鈴玉狩り",weak:["毒","腐敗","睡眠"],resist:["刺","雷"]}
+],
+"day2":[
+{name:"忌み鬼",weak:[],resist:[]},
+{name:"ツリーガード＆王都の騎兵",weak:[],resist:[]}
+]
+},
+"常世": {
+"day1":[
+{name:"亜人の女王＆亜人の剣聖",weak:["斬","炎"],resist:["睡眠"]},
+{name:"鈴玉狩り",weak:["毒","腐敗","睡眠"],resist:["刺","雷"]}
+],
+"day2":[
+{name:"忌み鬼",weak:[],resist:[]},
+{name:"ツリーガード＆王都の騎兵",weak:[],resist:[]}
+]
+}
 },
 
-"エデレ":{
-day1:["英雄のガーゴイル","ミミズ顔","公のフレイディア","貪食ドラゴン"],
-day2:["古竜","砕地の宿将","坩堝の騎士＆黄金カバ","夜の騎兵たち"]
+"エデレ": {
+"通常": {
+"day1":[
+{name:"英雄のガーゴイル",weak:[],resist:["全"]},
+{name:"ミミズ顔",weak:[],resist:["聖"]},
+{name:"公のフレイディア",weak:["打"],resist:["炎以外","毒","睡眠"]},
+{name:"貪食ドラゴン",weak:["出血","冷気"],resist:["毒","腐敗"]}
+],
+"day2":[
+{name:"古竜",weak:[],resist:[]},
+{name:"砕地の宿将",weak:["状態異常"],resist:["属性","斬"]},
+{name:"坩堝の騎士＆黄金カバ",weak:[],resist:[]}
+]
+},
+"常世": {
+"day1":[
+{name:"英雄のガーゴイル",weak:[],resist:["全"]},
+{name:"ミミズ顔",weak:[],resist:["聖"]},
+{name:"夜の騎兵たち",weak:["毒","腐敗","睡眠"],resist:["全属性","雷弱め"]}
+],
+"day2":[
+{name:"古竜",weak:[],resist:[]},
+{name:"砕地の宿将",weak:["状態異常"],resist:["属性","斬"]},
+{name:"坩堝の騎士＆黄金カバ",weak:[],resist:[]}
+]
+}
 },
 
-"グノスター":{
-day1:["百足のデーモン","戦場の宿将","熔鉄デーモン","夜の騎兵たち","ティビアの呼び舟"],
-day2:["大土竜","ノクスの竜人兵","竜のツリーガード＆王都の騎兵"]
-},
-
-"フルゴール":{
-day1:["王族の幽鬼","貪食ドラゴン","百足のデーモン","夜の騎兵たち","ミミズ顔"],
-day2:["ノクスの竜人兵","戦場の宿将","無名の王"]
-},
-
-"カリゴ":{
-day1:["燻れた樹霊","接ぎ木の君主","百足のデーモン","公のフレイディア","ティビアの呼び舟"],
-day2:["冷たい谷の踊り子","竜のツリーガード＆王都の騎兵","神肌の貴種＆神肌の使徒"]
-},
-
-"リブラ":{
-day1:["王族の幽鬼","公のフレイディア","ティビアの呼び舟","百足のデーモン","戦場の宿将"],
-day2:["死儀礼の鳥","坩堝の騎士＆黄金カバ","神肌の貴種＆神肌の使徒"]
-},
-
-"マリス":{
-day1:["英雄のガーゴイル","貪食ドラゴン","接ぎ木の君主","ミミズ顔","百足のデーモン"],
-day2:["神肌の貴種＆神肌の使徒","ツリーガード","降る星の成獣"]
-},
-
-"ハルモニア":{
-day1:["傷ついたデーモン＆うろ底のデーモン","呪剣士＆神獣の戦士"],
-day2:["デーモンの王子","血の君主（もーぐ様）"]
-},
-
-"瓦礫の王":{
-day1:["大赤熊","死の騎士"],
-day2:["神獣獅子舞","騎士アルトリウス"]
+"マリス": {
+"day1":[
+{name:"英雄のガーゴイル",weak:[],resist:["全"]},
+{name:"貪食ドラゴン",weak:["出血","冷気"],resist:["毒","腐敗"]},
+{name:"接ぎ木の君主",weak:["状態異常"],resist:["聖"]},
+{name:"ミミズ顔",weak:[],resist:["聖"]},
+{name:"熔鉄デーモン",weak:["毒","腐敗"],resist:["出血","睡眠","炎"]}
+],
+"day2":[
+{name:"神肌の貴種＆神肌の使徒",weak:[],resist:[]},
+{name:"ツリーガード＆王都の騎兵",weak:[],resist:[]},
+{name:"降る星の成獣",weak:[],resist:[]}
+]
 }
 
 };
 
-// ===== 表示 =====
-function getResist(name){
-let key = Object.keys(resist).find(k => name.includes(k));
-return resist[key] || {weak:[],resist:[]};
-}
-
-function render(list,id){
-let el = document.getElementById(id);
-el.innerHTML = "";
+function render(list, id){
+const el=document.getElementById(id);
+el.innerHTML="";
 
 list.forEach(b=>{
-let r = getResist(b);
-let isTrigger = triggerBosses.some(t => b.includes(t));
-let cls = isTrigger ? "name trigger" : "name";
-
-el.innerHTML += `
+el.innerHTML+=`
 <div class="card">
-<div class="${cls}">${b}</div>
-<div class="weak">弱点：${r.weak.join(" / ") || "なし"}</div>
-<div class="resist">耐性：${r.resist.join(" / ") || "なし"}</div>
+<div class="name">${b.name}</div>
+<div class="weak">弱点：${b.weak.join(", ") || "なし"}</div>
+<div class="resist">耐性：${b.resist.join(", ") || "なし"}</div>
 </div>`;
 });
 }
 
-const select = document.getElementById("boss");
+const bossSelect=document.getElementById("bossSelect");
 
-Object.keys(routes).forEach(k=>{
-select.innerHTML += `<option>${k}</option>`;
+Object.keys(data).forEach(b=>{
+bossSelect.innerHTML+=`<option>${b}</option>`;
 });
 
 function update(){
-let b = select.value;
-render(routes[b].day1,"day1");
-render(routes[b].day2,"day2");
+const boss=bossSelect.value;
+const mode=document.getElementById("modeSelect").value;
+
+let info=data[boss];
+
+if(info["通常"]){
+info=info[mode] || info["通常"];
 }
 
-select.onchange = update;
-update();
+render(info.day1,"day1");
+render(info.day2,"day2");
+}
 
+bossSelect.onchange=update;
+document.getElementById("modeSelect").onchange=update;
+
+update();
 </script>
 
 </body>
